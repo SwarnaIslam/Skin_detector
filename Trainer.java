@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class Trainer {
     private double[][][] skinPixCount=new double[256][256][256];
@@ -14,19 +16,18 @@ public class Trainer {
     private double totalSkinPixel=0;
     private double totalNonSkinPixel=0;
     public void skinDetectTrain() throws IOException {
-        File folder=new File("src/ibtd/Mask");
-        for(File file: folder.listFiles()){
-            countSkinNonSkin(file);
+        List<File> masked= Arrays.asList(new File("src/ibtd/Mask").listFiles());
+        List<File> nonMasked=Arrays.asList(new File("src/ibtd/NonMask").listFiles());
+        for(int i=0;i<masked.size();i++){
+            countSkinNonSkin(masked.get(i),nonMasked.get(i));
         }
 
         probabilityOfSkinNonSkin();
     }
 
-    public void countSkinNonSkin(File file) throws IOException,NullPointerException {
-        BufferedImage maskedImage = ImageIO.read(file);
+    public void countSkinNonSkin(File masked,File nonMasked) throws IOException,NullPointerException {
+        BufferedImage maskedImage = ImageIO.read(masked);
 
-        String nonMaskedPath = file.getPath().toString().replace("Mask"+"\\","").replace(".bmp",".jpg");
-        File nonMasked=new File(nonMaskedPath);
         BufferedImage nonMaskedImage=ImageIO.read(nonMasked);
         for(int i=0;i<maskedImage.getWidth();i++){
             for(int j=0;j<maskedImage.getHeight();j++){

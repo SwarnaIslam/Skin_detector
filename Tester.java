@@ -12,12 +12,9 @@ public class Tester {
         for(int i=0;i<inputImg.getWidth();i++){
             for(int j=0;j<inputImg.getHeight();j++){
                 Color color= new Color(inputImg.getRGB(i,j),true);
-                if(Trainer.probabilityLearnt[color.getRed()][color.getGreen()][color.getBlue()]<=0.4){
+                if(Trainer.probabilityLearnt[color.getRed()][color.getGreen()][color.getBlue()]<=0.5){
                     inputImg.setRGB(i,j,Color.white.getRGB());
                 }
-//                else{
-//                    inputImg.setRGB(i,j,Color.white.getRGB());
-//                }
             }
         }
         ImageIO.write(inputImg,"jpg",new File("src/outputs/"+file.getName()));

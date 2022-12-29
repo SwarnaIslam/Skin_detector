@@ -13,6 +13,7 @@ public class AccuracyMeasure {
     private int dataToBeTested=0;
     private int dataSize=0;
     private double accuracy;
+    private Trainer trainer=null;
     private int[] index=null;
     public AccuracyMeasure(String maskPath, String nonMaskPath){
         maskImages.addAll(Arrays.asList(new File(maskPath).listFiles()));
@@ -22,13 +23,14 @@ public class AccuracyMeasure {
         accuracy=0.0;
         dataToBeTrained= (int) Math.ceil(dataSize*0.9);
         dataToBeTested=dataSize-dataToBeTrained;
+        trainer=new Trainer();
     }
-    public void accuracyTraining(Trainer trainer) throws IOException {
+    public void accuracyTraining() throws IOException {
         for(int i=0;i<dataToBeTrained;i++){
             trainer.countSkinNonSkin(maskImages.get(i),nonMaskImages.get(i));
         }
     }
-    public void accuracyTesting(Trainer trainer) throws IOException {
+    public void accuracyTesting() throws IOException {
         double trueNegative=0;
         double truePositive=0;
         double falseNegative=0;
@@ -42,11 +44,11 @@ public class AccuracyMeasure {
                     Color nonMaskedColor = new Color(nonMaskedImage.getRGB(w, h), true);
                     Color maskedColor = new Color(maskedImage.getRGB(w, h), true);
 
-                    if (!isSkin(nonMaskedColor, trainer)) {
+                    if (!isSkin(nonMaskedColor)) {
                         if (isTrulyNonSkin(maskedColor)) {
-                            falseNegative++;
-                        } else {
                             trueNegative++;
+                        } else {
+                            falseNegative++;
                         }
                     } else {
                         if (isTrulySkin(maskedColor)) {
@@ -58,7 +60,7 @@ public class AccuracyMeasure {
                 }
             }
         }
-        accuracy+=(truePositive+falseNegative)/(trueNegative+truePositive+falseNegative+falsePositive);
+        accuracy+=(truePositive+trueNegative)/(trueNegative+truePositive+falseNegative+falsePositive);
     }
     public boolean isTrulyNonSkin(Color maskedColor){
         int maskedRed=maskedColor.getRed();
@@ -74,19 +76,18 @@ public class AccuracyMeasure {
 
         return maskedRed<=250&&maskedGreen<=250&&maskedBlue<=250;
     }
-    private boolean isSkin(Color nonMaskedColor, Trainer trainer){
+    private boolean isSkin(Color nonMaskedColor){
         int nonMaskedRed=nonMaskedColor.getRed();
         int nonMaskedGreen=nonMaskedColor.getGreen();
         int nonMaskedBlue=nonMaskedColor.getBlue();
-        return trainer.probabilityLearnt[nonMaskedRed][nonMaskedGreen][nonMaskedBlue]>0.4;
+        return this.trainer.probabilityLearnt[nonMaskedRed][nonMaskedGreen][nonMaskedBlue]>0.4;
     }
     public static void main(String[] args) throws IOException {
         AccuracyMeasure accuracyMeasure=new AccuracyMeasure("src/ibtd/Mask", "src/ibtd/NonMask");
         for(int i=0;i<10;i++){
-            Trainer trainer=new Trainer();
             Collections.shuffle(Arrays.asList(accuracyMeasure.index));
-            accuracyMeasure.accuracyTraining(trainer);
-            accuracyMeasure.accuracyTesting(trainer);
+            accuracyMeasure.accuracyTraining();
+            accuracyMeasure.accuracyTesting();
         }
         System.out.println("Accuracy: "+(accuracyMeasure.accuracy/10.0)*100.0+"%");
     }
